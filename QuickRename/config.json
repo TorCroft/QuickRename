@@ -1,0 +1,21 @@
+{
+  "confirm": true,
+  "target_dir": "",
+  "unwanted_extension": [ ".tmp", "bak" ],
+  "string_delete": [ "_old" ],
+  "string_replace_pattern": [
+    {
+      "re_match": "\\d{4}",
+      "replace": "2077"
+    }
+  ],
+  "string_add_pattern": {
+    "re_match": "",
+    "format": "S01E\\2\\ ",
+    "format_config": {
+      "start": 1,
+      "step": 1
+    },
+    "position": 0
+  }
+}

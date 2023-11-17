@@ -34,7 +34,6 @@ void TaskHandler::getTasks() {
         tasks.emplace_back(std::bind(&TaskHandler::processStringAddPattern, this));
     }
 
-    tasks.emplace_back(std::bind(&TaskHandler::showChanges, this));
     tasks.emplace_back(std::bind(&TaskHandler::applyChanges, this));
 }
 
@@ -63,7 +62,10 @@ std::vector<File> TaskHandler::GetFileVector(const std::filesystem::path& direct
     if (std::filesystem::equivalent(directory, std::filesystem::current_path())) {
         const std::string configFileName = "config.json";
         auto it = std::remove_if(directory_files.begin(), directory_files.end(),
-            [&configFileName](const File& file) { return file.get_full_name() == configFileName; });
+            [&configFileName](const File& file) {
+                std::string fullname = file.get_full_name();
+                return fullname == configFileName || fullname == self_file_name;
+            });
 
         directory_files.erase(it, directory_files.end());
     }
@@ -73,8 +75,7 @@ std::vector<File> TaskHandler::GetFileVector(const std::filesystem::path& direct
 
 // Deletes the specified file at the given filePath.
 // Returns true if the file is successfully deleted, false otherwise.
-bool TaskHandler::deleteFile(const std::filesystem::path& filePath)
-{
+bool TaskHandler::deleteFile(const std::filesystem::path& filePath) {
     try {
         std::filesystem::remove(filePath);
         std::cout << "File deleted: " << filePath << std::endl;
@@ -309,14 +310,18 @@ void TaskHandler::showChanges() {
 
 // Applies changes to file names and deletes specified files.
 void TaskHandler::applyChanges() {
-    if (!to_be_deleted.size() && !files_name_changed.size()) {
-        return;  // No changes to apply
-    }
-
+    
     // Ask for confirmation if enabled in the configuration
     if (config.isConfirmEnabled()) {
+        showChanges();
         std::cout << "\nPress Enter to apply changes." << std::endl;
         std::cin.get();
+    }
+
+    if (!to_be_deleted.size() && !files_name_changed.size()) {
+        std::cout << "No changes to apply, press Enter to exit." << std::endl;
+        std::cin.get();
+        return;
     }
 
     // Apply new names to files with name changes
@@ -328,6 +333,4 @@ void TaskHandler::applyChanges() {
     for (File& file : to_be_deleted) {
         deleteFile(file.get_path());
     }
-
-    std::cout << "Changes applied." << std::endl;
 }

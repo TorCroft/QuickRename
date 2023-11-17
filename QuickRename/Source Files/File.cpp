@@ -12,8 +12,7 @@ std::string File::get_extension() const {
     return extension;
 }
 
-std::string File::get_new_name() const
-{
+std::string File::get_new_name() const {
     return new_name;
 }
 
@@ -25,8 +24,7 @@ std::filesystem::path File::get_path() const {
     return path;
 }
 
-std::string File::get_new_full_name() const
-{
+std::string File::get_new_full_name() const {
     return new_name + extension;
 }
 

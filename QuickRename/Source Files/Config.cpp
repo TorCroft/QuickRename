@@ -3,7 +3,7 @@
 #include <iostream>
 
 // Exits the program with an error message and a prompt to press Enter.
-void exitWithError(const std::string& errorMessage) {
+static void exitWithError(const std::string& errorMessage) {
     std::cerr << "Error: " << errorMessage << std::endl;
     std::cout << "Press Enter to exit." << std::endl;
     std::cin.get();
@@ -96,9 +96,7 @@ void Config::createConfigFile(const std::string& filename) {
     const std::string defaultTargetDir = "";
     const json defaultUnwantedExtension = json::array();
     const json defaultStringDelete = json::array();
-    const json defaultStringReplacePattern = {
-        {{"re_match", ""}, {"replace", ""}}
-    };
+    const json defaultStringReplacePattern = {{"re_match", ""}, {"replace", ""}};
     const json defaultStringAddPattern = {
         {"re_match", ""},
         {"format", ""},

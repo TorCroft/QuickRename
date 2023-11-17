@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include <string>
 #include <regex>
@@ -7,6 +8,8 @@
 #include <filesystem>
 
 using json = nlohmann::json;
+
+inline std::string self_file_name;
 
 class File {
 private:

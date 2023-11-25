@@ -22,6 +22,7 @@ QuickRename is a versatile tool for renaming files in bulk according to user-def
    ``` json
    {
     "confirm": true,
+    "exit_when_done": false,
     "target_dir": "",
     "unwanted_extension": [ ".tmp", "bak" ],
     "string_delete": [ "_old" ],
@@ -46,41 +47,17 @@ QuickRename is a versatile tool for renaming files in bulk according to user-def
   This project utilizes the `nlohmann/json` library for handling JSON configurations. To successfully build and run the project, make sure to include this library in your project dependencies. You can find the library [here](https://github.com/nlohmann/json) and follow the installation instructions provided in the repository.
 
 ## Configuration
-
-### `confirm`
-
-This boolean option determines whether QuickRename will prompt for confirmation before applying the changes. If set to true, QuickRename will display a summary of changes and ask for confirmation before proceeding.
-
 These configurations provide flexibility and control over how QuickRename modifies file names, allowing for a tailored file renaming process based on specific needs. Adjust these settings as required for efficient file organization.
-
-### `target_dir`
-
-Specifies the target directory for QuickRename operations. This is the directory where QuickRename will execute file renaming tasks. If not specified, the default target directory is the current working directory.
-
-### `unwantedExtensionList`
-
-This is a list of file extensions that QuickRename will remove files with these extensions.
-
-### `stringDeleteList`
-
-QuickRename will delete the specified strings from the file names. Any occurrences of the strings in this list will be removed.
-
-### `stringReplaceList`
-
-This is a list of string replacement patterns. Each pattern consists of two strings: the string to be replaced and the string to replace it with. `re_match` can be <strong>regular expression</strong>. Multiple patterns can be specified for complex replacements.
-
-### `stringAddPattern`
-
-This section configures the addition of a custom string pattern to file names. It includes the following sub-options:
-
-- **match:** The string to match file name. It will match all files if it's empty.
-- **format:** The format of the string to be added. If it contains `\\number\\`, where the number represents the length of the sequential number, you can specify a sequential number using `formatConfig`.
-  - **Example** If format is set to `"S01E\\2\\"`, which means it will add a string like "S01E01", "S01E02", and so on. The `\\2\\` represents a two-digit sequential number, and it starts from 1, incrementing by 1 for each file. 
-
-- **formatConfig:** Additional configuration for formatting the added string.
-   - **start:** The starting value of the sequential number.
-   - **step:** The step or increment value for the sequential number.
-- **position:** The position where the new string should be added (0 for the beginning, -1 for the end of file name, 1 for after the first character, etc.).
+| **Option**  | **Description**  |
+|-------------------------|---------------------------------------|
+| `confirm` | This boolean option determines whether QuickRename will prompt for confirmation before applying the changes. If set to true, QuickRename will display a summary of changes and ask for confirmation before proceeding. |
+| `exit_when_done`| This boolean option determines whether QuickRename will prompt for confirmation after applying the changes. If set to true, QuickRename will directly exit when changes are applied. |
+| `target_dir` | Specifies the target directory for QuickRename operations. This is the directory where QuickRename will execute file renaming tasks. If not specified, the default target directory is the current working directory.|
+| `unwantedExtensionList` | This is a list of file extensions that QuickRename will remove files with these extensions. |
+| `stringDeleteList`| QuickRename will delete the specified strings from the file names. Any occurrences of the strings in this list will be removed. |
+| `stringReplaceList` | This is a list of string replacement patterns. Each pattern consists of two strings: the string to be replaced and the string to replace it with. `re_match` can be **regular expression**. Multiple patterns can be specified for complex replacements. |
+| `stringAddPattern` | This section configures the addition of a custom string pattern to file names. It includes the following sub-options: <br>**match:** The string to match file name. It will match all files if it's empty. <br> **format:** The format of the string to be added. If it contains `\\number\\`, where the number represents the length of the sequential number, you can specify a sequential number using `formatConfig`.<br> **Example:** If format is set to `"S01E\\2\\"`, which means it will add a string like "S01E01", "S01E02", and so on. The `\\2\\` represents a two-digit sequential number, and it starts from 1, incrementing by 1 for each file. |
+|`formatConfig` | Additional configuration for formatting the added string.<br>**start:** The starting value of the sequential number.<br> **step:** The step or increment value for the sequential number.<br>**position:** The position where the new string should be added (0 for the beginning, -1 for the end of file name, 1 for after the first character, etc.).|
 
 
 ## Features

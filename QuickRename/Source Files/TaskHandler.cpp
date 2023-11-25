@@ -1,4 +1,13 @@
-#include "QuickRenameClasses.h"
+#include <QuickRename.h>
+#include <iostream>
+#include <format>
+#include <regex>
+
+
+static void confirmWithMsg(const std::string& message) {
+    std::cout << "\n" << message;
+    std::cin.get();
+}
 
 // Processes each file with the specified action function.
 void TaskHandler::processFiles(const std::function<void(File&)>& action) {
@@ -75,16 +84,14 @@ std::vector<File> TaskHandler::GetFileVector(const std::filesystem::path& direct
 
 // Deletes the specified file at the given filePath.
 // Returns true if the file is successfully deleted, false otherwise.
-bool TaskHandler::deleteFile(const std::filesystem::path& filePath) {
+void TaskHandler::deleteFile(const std::filesystem::path& filePath) {
     try {
         std::filesystem::remove(filePath);
         std::cout << "File deleted: " << filePath << std::endl;
-        return true;
     }
     catch (const std::exception& e) {
         // Handle and log any exceptions that occur during file deletion.
         std::cerr << "Error deleting file " << filePath << ": " << e.what() << std::endl;
-        return false;
     }
 }
 
@@ -117,7 +124,7 @@ void TaskHandler::processUnwantedExtensions() {
 
     processFiles([&](File& file) {
         if (std::find(unwantedExtensions.begin(), unwantedExtensions.end(), file.get_extension()) != unwantedExtensions.end())
-            to_be_deleted.emplace_back(file);
+            filesToDelete.emplace_back(file);
         });
 
     // Remove files with unwanted extensions from the files vector
@@ -217,14 +224,14 @@ void TaskHandler::processStringAddPattern() {
         int step = pattern.formatConfig.step; if (step < 1) step = 1;
         std::string prefix = match.prefix();
         std::string suffix = match.suffix();
-        std::string add_string;
+        std::string addString;
         
         if (pattern.match.empty()) {
             // Process files and add new string based on numeric pattern
             processFiles([&](File& file) {
                 std::string temp = file.get_new_name();
-                add_string = generateNewName(prefix, suffix, number_width, num, step);
-                insertStringAtPosition(temp, add_string, pattern.position);
+                addString = generateNewName(prefix, suffix, number_width, num, step);
+                insertStringAtPosition(temp, addString, pattern.position);
 
                 if (temp != file.get_new_name()) {
                     file.set_new_name(temp);
@@ -238,8 +245,8 @@ void TaskHandler::processStringAddPattern() {
             processFiles([&](File& file) {
                 std::string temp = file.get_new_name();
                 if (std::regex_match(temp, matchObj)) {
-                    add_string = generateNewName(prefix, suffix, number_width, num, step);
-                    insertStringAtPosition(temp, add_string, pattern.position);
+                    addString = generateNewName(prefix, suffix, number_width, num, step);
+                    insertStringAtPosition(temp, addString, pattern.position);
                     if (temp != file.get_new_name()) {
                         file.set_new_name(temp);
                     }
@@ -284,8 +291,8 @@ void TaskHandler::showChanges() {
     // Process files and display changes
     processFiles([&](File& file) {
         if (file.is_name_changed()) {
-            files_name_changed.emplace_back(file);
-            std::cout << count << ". " << "\"" << file.get_full_name() << "\"  --->  \"" << file.get_new_full_name() << "\"" << std::endl;
+            nameChangedFiles.emplace_back(file);
+            std::cout << std::format("{}.\"{}\"  --->  \"{}\"", count, file.get_full_name(), file.get_new_full_name()) << std::endl;
             count++;
         }
         });
@@ -293,17 +300,17 @@ void TaskHandler::showChanges() {
     count = 1;
 
     // Display files to be deleted
-    if (!files_name_changed.size()) {
+    if (!nameChangedFiles.size()) {
         std::cout << "None\n" << std::endl;
     }
 
-    std::cout << "\n[Files to be deleted]" << std::endl;
-    for (File& file : to_be_deleted) {
-        std::cout << count << ". " << file.get_full_name() << std::endl;
+    std::cout << "\n[Files to delete]" << std::endl;
+    for (File& file : filesToDelete) {
+        std::cout << std::format("{}. {}", count, file.get_full_name()) << std::endl;
         count++;
     }
 
-    if (!to_be_deleted.size()) {
+    if (!filesToDelete.size()) {
         std::cout << "None\n" << std::endl;
     }
 }
@@ -314,23 +321,32 @@ void TaskHandler::applyChanges() {
     // Ask for confirmation if enabled in the configuration
     if (config.isConfirmEnabled()) {
         showChanges();
-        std::cout << "\nPress Enter to apply changes." << std::endl;
-        std::cin.get();
+        confirmWithMsg("Press Enter to apply changes.");
+    }
+    else {
+        processFiles([&](File& file) {
+            if (file.is_name_changed()) {
+                nameChangedFiles.emplace_back(file);
+            }
+            });
     }
 
-    if (!to_be_deleted.size() && !files_name_changed.size()) {
-        std::cout << "No changes to apply, press Enter to exit." << std::endl;
-        std::cin.get();
+    if (!filesToDelete.size() && !nameChangedFiles.size()) {
+        confirmWithMsg("No changes to apply, press Enter to exit.");
         return;
     }
 
     // Apply new names to files with name changes
-    for (File& file : files_name_changed) {
-        file.apply_new_name();
+    for (File& file : nameChangedFiles) {
+        file.applyNewName();
     }
 
     // Delete specified files
-    for (File& file : to_be_deleted) {
+    for (File& file : filesToDelete) {
         deleteFile(file.get_path());
+    }
+
+    if (!config.isExitWhenDoneEnabled()) {
+        confirmWithMsg("Changes applied, press Enter to exit.");
     }
 }

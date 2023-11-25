@@ -1,5 +1,6 @@
 {
   "confirm": true,
+  "exit_when_done": false,
   "target_dir": "",
   "unwanted_extension": [ ".tmp", "bak" ],
   "string_delete": [ "_old" ],

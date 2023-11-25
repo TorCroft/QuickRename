@@ -1,4 +1,6 @@
-#include "QuickRenameClasses.h"
+#include <File.h>
+#include <iostream>
+
 
 void File::set_new_name(const std::string& new_n) {
     new_name = new_n;
@@ -17,7 +19,9 @@ std::string File::get_new_name() const {
 }
 
 std::string File::get_full_name() const {
-    return name + extension;
+    std::string result = name;
+    result += extension;
+    return result;
 }
 
 std::filesystem::path File::get_path() const {
@@ -25,20 +29,22 @@ std::filesystem::path File::get_path() const {
 }
 
 std::string File::get_new_full_name() const {
-    return new_name + extension;
+    std::string result = new_name;
+    result += extension;
+    return result;
 }
 
 std::filesystem::path File::get_new_name_path() const {
     return path.parent_path() / (new_name + extension);
 }
 
-bool File::is_name_changed() {
+bool File::is_name_changed() const {
     return !(name == new_name);
 }
 
 // Applies the new name to the file, renaming it in the file system.
 // Returns true if the operation is successful, false otherwise.
-bool File::apply_new_name() {
+bool File::applyNewName() {
     try {
         std::filesystem::path old_path = path;
         std::filesystem::path new_path = File::get_new_name_path();

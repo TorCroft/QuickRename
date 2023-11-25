@@ -1,9 +1,11 @@
-#include "QuickRenameClasses.h"
-#include <fstream>
+#include <QuickRename.h>
 #include <iostream>
+#include <fstream>
+#include <regex>
+
 
 // Exits the program with an error message and a prompt to press Enter.
-static void exitWithError(const std::string& errorMessage) {
+void exitWithError(const std::string& errorMessage) {
     std::cerr << "Error: " << errorMessage << std::endl;
     std::cout << "Press Enter to exit." << std::endl;
     std::cin.get();
@@ -48,10 +50,11 @@ Config::Config(const std::string& filename) {
 void Config::processJson(const json& Data) {
     // Load configuration settings from JSON data
     confirm = Data["confirm"].get<bool>();
+    exitWhenDone = Data["exit_when_done"].get<bool>();
 
-    target_dir = Data["target_dir"].get<std::string>();
-    if (target_dir.empty()) {
-        target_dir = ".";
+    targetDir = Data["target_dir"].get<std::string>();
+    if (targetDir.empty()) {
+        targetDir = ".";
     }
 
     unwantedExtensionList = Data["unwanted_extension"].get<std::vector<std::string>>();
@@ -92,10 +95,6 @@ void Config::processJson(const json& Data) {
 
 void Config::createConfigFile(const std::string& filename) {
     // Named constants for default values
-    const bool defaultConfirm = true;
-    const std::string defaultTargetDir = "";
-    const json defaultUnwantedExtension = json::array();
-    const json defaultStringDelete = json::array();
     const json defaultStringReplacePattern = {{"re_match", ""}, {"replace", ""}};
     const json defaultStringAddPattern = {
         {"re_match", ""},
@@ -106,10 +105,11 @@ void Config::createConfigFile(const std::string& filename) {
 
     // Constructing the JSON configuration
     json config;
-    config["confirm"] = defaultConfirm;
-    config["target_dir"] = defaultTargetDir;
-    config["unwanted_extension"] = defaultUnwantedExtension;
-    config["string_delete"] = defaultStringDelete;
+    config["confirm"] = true;
+    config["exit_when_done"] = false;
+    config["target_dir"] = "";
+    config["unwanted_extension"] = json::array();
+    config["string_delete"] = json::array();
     config["string_replace_pattern"] = json::array({ defaultStringReplacePattern });
     config["string_add_pattern"] = defaultStringAddPattern;
 
@@ -121,14 +121,14 @@ void Config::createConfigFile(const std::string& filename) {
     }
     else {
         std::stringstream msg;
-        msg << "Unable to create config file \"" << filename <<"\"." << std::endl;
+        msg << "Unable to create config file '" << filename <<"'." << std::endl;
         msg << "Please check permissions or disk space." << std::endl;
         exitWithError(msg.str());
     }
 }
 
 const std::string& Config::getTargetDir() const {
-    return target_dir;
+    return targetDir;
 }
 
 const std::vector<std::string>& Config::getUnwantedExtensionList() const {
@@ -165,4 +165,8 @@ bool Config::isStringAddPatternEmpty() const {
 
 bool Config::isConfirmEnabled() const {
     return confirm;
+}
+
+bool Config::isExitWhenDoneEnabled() const {
+    return exitWhenDone;
 }

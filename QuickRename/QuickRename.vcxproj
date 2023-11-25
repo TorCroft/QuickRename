@@ -71,6 +71,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,7 +84,10 @@
     <None Include="config.json" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header Files\QuickRenameClasses.h" />
+    <ClInclude Include="Header Files\Config.h" />
+    <ClInclude Include="Header Files\File.h" />
+    <ClInclude Include="Header Files\QuickRename.h" />
+    <ClInclude Include="Header Files\TaskHandler.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -19,9 +19,17 @@ void TaskHandler::processFiles(const std::function<void(File&)>& action) {
 // Constructor for TaskHandler, initializes configuration and retrieves file list.
 TaskHandler::TaskHandler(const Config& config) : config(config) {
     std::filesystem::path dir = std::filesystem::absolute(config.getTargetDir());
-    std::cout << "Target Directory: " << dir << std::endl;
-    files = GetFileVector(dir);
-    getTasks();
+    if (std::filesystem::exists(dir) && std::filesystem::is_directory(dir)) {
+        // targetDir exists and is a directory
+        std::cout << "Target Directory: " << dir << std::endl;
+        files = GetFileVector(dir);
+        getTasks();
+    }
+    else {
+        // targetDir does not exist or is not a directory
+        std::cerr << "Error: target directory does not exist or is not a valid directory." << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
 }
 
 // Populate 'tasks' vector with function pointers based on configured actions.

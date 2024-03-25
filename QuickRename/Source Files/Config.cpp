@@ -4,9 +4,8 @@
 #include <regex>
 
 
-// Exits the program with an error message and a prompt to press Enter.
-void exitWithError(const std::string& errorMessage) {
-    std::cerr << "Error: " << errorMessage << std::endl;
+// Exits the program with a prompt to press Enter.
+static void exitWithFailure() {
     std::cout << "Press Enter to exit." << std::endl;
     std::cin.get();
     std::exit(EXIT_FAILURE);
@@ -25,7 +24,14 @@ Config::Config(const std::string& filename) {
             std::cout << "Config Loaded: " << filePath << std::endl;
 
             // Read and parse the JSON data
-            file >> configData;
+            try {
+                file >> configData;
+            }
+            catch (const json::parse_error& e) {
+                std::cerr << "JSON parse error: " << e.what() << " at byte position " << e.byte << std::endl;
+                exitWithFailure();
+            }
+
             file.close();
 
             // Process the JSON data
@@ -33,16 +39,15 @@ Config::Config(const std::string& filename) {
         }
         else {
             // Handle error if unable to open the file
-            exitWithError("Error opening file, provided file path: " + filePath.string());
+            std::cerr << "Error opening file, provided file path: " << filePath.string();
+            exitWithFailure();
         }
     }
     else {
         // Handle error if the config file is not found
         createConfigFile(filename);
-        std::stringstream msg;
-        msg << "Config File Not Found, QuickRename auto created config.json: " << filePath.string() << std::endl;
-        msg << "Please edit config.json and then run QuickRename again." << std::endl;
-        exitWithError(msg.str());
+        std::cerr << "Config File Not Found, QuickRename auto created config.json: " << filePath.string() << std::endl << "Please edit config.json and then run QuickRename again." << std::endl;
+        exitWithFailure();
     }
 }
 
@@ -120,10 +125,8 @@ void Config::createConfigFile(const std::string& filename) {
         std::cout << "Config file '" << filename << "' created successfully." << std::endl;
     }
     else {
-        std::stringstream msg;
-        msg << "Unable to create config file '" << filename <<"'." << std::endl;
-        msg << "Please check permissions or disk space." << std::endl;
-        exitWithError(msg.str());
+        std::cerr << "Unable to create config file '" << filename <<"'." << std::endl << "Please check permissions or disk space." << std::endl;
+        exitWithFailure();
     }
 }
 

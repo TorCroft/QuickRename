@@ -20,7 +20,7 @@ QuickRename is a versatile tool for renaming files in bulk according to user-def
    Example `config.json`:
 
    ``` json
-   {
+  {
     "confirm": true,
     "exit_when_done": false,
     "target_dir": "",
@@ -30,6 +30,10 @@ QuickRename is a versatile tool for renaming files in bulk according to user-def
       {
         "re_match": "\\d{4}",
         "replace": "2077"
+      },
+      {
+        "re_match": "SE(\\d{2}).(\\d{2})",
+        "replace": "S$1E$2"
       }
     ],
     "string_add_pattern": {
@@ -55,7 +59,7 @@ These configurations provide flexibility and control over how QuickRename modifi
 | `target_dir` | Specifies the target directory for QuickRename operations. This is the directory where QuickRename will execute file renaming tasks. If not specified, the default target directory is the current working directory.|
 | `unwantedExtensionList` | This is a list of file extensions that QuickRename will remove files with these extensions. |
 | `stringDeleteList`| QuickRename will delete the specified strings from the file names. Any occurrences of the strings in this list will be removed. |
-| `stringReplaceList` | This is a list of string replacement patterns. Each pattern consists of two strings: the string to be replaced and the string to replace it with. `re_match` can be **regular expression**. Multiple patterns can be specified for complex replacements. |
+| `stringReplaceList` | This is a list of string replacement patterns where each pattern comprises two strings: the string to be replaced and its corresponding replacement string. The `re_match` field allows for the use of regular expressions. Multiple patterns can be specified to handle complex replacements. These patterns are processed using `std::regex_replace`. For instance, consider a pattern like `"re_match": "SE(\\d{2}).(\\d{2})", "replace": "S$1E$2"`. Here, `()` denote grouping in regular expressions. Specifically, `(\\d{2})` represents a group capturing two digits, and the subsequent reference to `$1` retrieves the matched content within the first set of `()`, while `$2` retrieves the content within the second set. Thus, the pattern `SE(\\d{2}).(\\d{2})` matches strings starting with "SE" followed by two digits, a dot, and two additional digits, and replaces it with "S" followed by the first set of digits, then "E", and finally the second set of digits. For the input "SE03.01", it transforms to "S03E01".|
 | `stringAddPattern` | This section configures the addition of a custom string pattern to file names. It includes the following sub-options: <br>**match:** The string to match file name. It will match all files if it's empty. <br> **format:** The format of the string to be added. If it contains `\\number\\`, where the number represents the length of the sequential number, you can specify a sequential number using `formatConfig`.<br> **Example:** If format is set to `"S01E\\2\\"`, which means it will add a string like "S01E01", "S01E02", and so on. The `\\2\\` represents a two-digit sequential number, and it starts from 1, incrementing by 1 for each file. |
 |`formatConfig` | Additional configuration for formatting the added string.<br>**start:** The starting value of the sequential number.<br> **step:** The step or increment value for the sequential number.<br>**position:** The position where the new string should be added (0 for the beginning, -1 for the end of file name, 1 for after the first character, etc.).|
 

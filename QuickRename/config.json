@@ -8,6 +8,10 @@
     {
       "re_match": "\\d{4}",
       "replace": "2077"
+    },
+    {
+      "re_match": "SE(\\d{2}).(\\d{2})",
+      "replace": "S$1E$2"
     }
   ],
   "string_add_pattern": {

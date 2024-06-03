@@ -17,11 +17,11 @@ void TaskHandler::processFiles(const std::function<void(File&)>& action) {
 }
 
 // Constructor for TaskHandler, initializes configuration and retrieves file list.
-TaskHandler::TaskHandler(const Config& config) : config(config) {
+TaskHandler::TaskHandler(const GlobalConfig& globalConfig, const Config& config) : global(globalConfig), config(config) {
     std::filesystem::path dir = std::filesystem::absolute(config.getTargetDir());
     if (std::filesystem::exists(dir) && std::filesystem::is_directory(dir)) {
         // targetDir exists and is a directory
-        std::cout << "Target Directory: " << dir << std::endl;
+        std::cout << "\nTarget Directory: " << dir << std::endl;
         files = GetFileVector(dir);
         getTasks();
     }
@@ -327,22 +327,27 @@ void TaskHandler::showChanges() {
 void TaskHandler::applyChanges() {
     
     // Ask for confirmation if enabled in the configuration
-    if (config.isConfirmEnabled()) {
+    if (global.isConfirmEnabled()) {
         showChanges();
-        confirmWithMsg("Press Enter to apply changes.");
+        if (!filesToDelete.size() && !nameChangedFiles.size()) {
+            confirmWithMsg("No changes to apply, press any key to continue.");
+            return;
+        }
+        else
+        {
+            confirmWithMsg("Press any key to apply changes.");
+        }
     }
     else {
-        processFiles([&](File& file) {
-            if (file.is_name_changed()) {
-                nameChangedFiles.emplace_back(file);
-            }
+        processFiles(
+            [&](File& file) {
+                if (file.is_name_changed()) {
+                    nameChangedFiles.emplace_back(file);
+                }
             });
     }
 
-    if (!filesToDelete.size() && !nameChangedFiles.size()) {
-        confirmWithMsg("No changes to apply, press Enter to exit.");
-        return;
-    }
+    
 
     // Apply new names to files with name changes
     for (File& file : nameChangedFiles) {
@@ -354,7 +359,7 @@ void TaskHandler::applyChanges() {
         deleteFile(file.get_path());
     }
 
-    if (!config.isExitWhenDoneEnabled()) {
-        confirmWithMsg("Changes applied, press Enter to exit.");
+    if (!global.isExitWhenDoneEnabled()) {
+        confirmWithMsg("Changes applied, press any key ...");
     }
 }

@@ -1,4 +1,5 @@
 #include <QuickRename.h>
+#include <iostream>
 
 
 int main(int argc, char* argv[]) {    
@@ -10,9 +11,18 @@ int main(int argc, char* argv[]) {
         size_t lastSlash = fullPath.find_last_of("/\\");
         self_file_name = (lastSlash != std::string::npos) ? fullPath.substr(lastSlash + 1) : fullPath;
     }
+    
+    ConfigFile configFile;
+    GlobalConfig global(configFile.getGlobalConfig());
+    std::vector<json> profiles = configFile.getProfiles();
 
-    Config config;
-    TaskHandler task_handler(config);
-    task_handler.executeTasks();
+    std::cout << profiles.size() << " profiles configured." << std::endl;
+
+    for (const auto& profile : profiles) {
+        Config config(profile);
+        TaskHandler task_handler(global, config);
+        task_handler.executeTasks();
+    }
+
     return 0;
 }

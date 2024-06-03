@@ -11,8 +11,8 @@ static void exitWithFailure() {
     std::exit(EXIT_FAILURE);
 }
 
-// Constructor for Config, loads configuration data from a JSON file.
-Config::Config(const std::string& filename) {
+
+ConfigFile::ConfigFile(const std::string& filename) {
     json configData;
     std::filesystem::path filePath = std::filesystem::absolute(filename);
 
@@ -21,7 +21,7 @@ Config::Config(const std::string& filename) {
         std::ifstream file(filePath, std::ios::binary);
 
         if (file.is_open()) {
-            std::cout << "Config Loaded: " << filePath << std::endl;
+            std::cout << "Config Loaded: " << filePath << "\t";
 
             // Read and parse the JSON data
             try {
@@ -35,7 +35,9 @@ Config::Config(const std::string& filename) {
             file.close();
 
             // Process the JSON data
-            processJson(configData);
+            global = configData["global"].get<json>();
+            profiles = configData["profiles"].get<std::vector<json>>();
+
         }
         else {
             // Handle error if unable to open the file
@@ -51,18 +53,61 @@ Config::Config(const std::string& filename) {
     }
 }
 
-// Processes configuration data from the provided JSON object.
-void Config::processJson(const json& Data) {
-    // Load configuration settings from JSON data
-    confirm = Data["confirm"].get<bool>();
-    exitWhenDone = Data["exit_when_done"].get<bool>();
+json ConfigFile::getGlobalConfig() {
+    return global;
+}
 
-    targetDir = Data["target_dir"].get<std::string>();
+std::vector<json> ConfigFile::getProfiles() {
+    return profiles;
+}
+
+void ConfigFile::createConfigFile(const std::string& filename) {
+    // Named constants for default values
+    const json defaultStringReplacePattern = { {"re_match", ""}, {"replace", ""} };
+    const json defaultStringAddPattern = {
+        {"re_match", ""},
+        {"format", ""},
+        {"format_config", {{"start", 1}, {"step", 1}}},
+        {"position", 0}
+    };
+
+    // Constructing the JSON configuration
+    json config;
+    json globalConfig;
+    globalConfig["confirm"] = true;
+    globalConfig["exit_when_done"] = false;
+    config["global"] = globalConfig;
+
+    json profile;
+    profile["target_dir"] = "";
+    profile["unwanted_extension"] = json::array();
+    profile["string_delete"] = json::array();
+    profile["string_replace_pattern"] = json::array({ defaultStringReplacePattern });
+    profile["string_add_pattern"] = defaultStringAddPattern;
+
+    config["profiles"] = json::array({ profile });
+
+    // Writing the JSON to the file
+    std::ofstream file(filename);
+    if (file.is_open()) {
+        file << std::setw(4) << config;
+        std::cout << "Config file '" << filename << "' created successfully." << std::endl;
+    }
+    else {
+        std::cerr << "Unable to create config file '" << filename << "'." << std::endl << "Please check permissions or disk space." << std::endl;
+        exitWithFailure();
+    }
+}
+
+// Constructor for Config, loads configuration data from a JSON file.
+Config::Config(const json& profile) {
+    // Process profile
+    targetDir = profile["target_dir"].get<std::string>();
     if (targetDir.empty()) {
         targetDir = ".";
     }
 
-    unwantedExtensionList = Data["unwanted_extension"].get<std::vector<std::string>>();
+    unwantedExtensionList = profile["unwanted_extension"].get<std::vector<std::string>>();
 
     for (auto it = unwantedExtensionList.begin(); it != unwantedExtensionList.end(); ) {
         if (it->empty()) {
@@ -75,9 +120,9 @@ void Config::processJson(const json& Data) {
         ++it;
     }
 
-    stringDeleteList = Data["string_delete"].get<std::vector<std::string>>();
+    stringDeleteList = profile["string_delete"].get<std::vector<std::string>>();
 
-    for (const auto& entry : Data["string_replace_pattern"]) {
+    for (const auto& entry : profile["string_replace_pattern"]) {
         try {
             std::regex regexObj(entry["re_match"].get<std::string>());
             stringReplaceList.push_back({ entry["re_match"].get<std::string>(), entry["replace"].get<std::string>() });
@@ -88,45 +133,13 @@ void Config::processJson(const json& Data) {
     }
 
     // Load and process string add pattern if present in the JSON data
-    if (Data.find("string_add_pattern") != Data.end()) {
-        const auto& strAddPattern = Data["string_add_pattern"];
+    if (profile.find("string_add_pattern") != profile.end()) {
+        const auto& strAddPattern = profile["string_add_pattern"];
         stringAddPattern.match = strAddPattern["re_match"].get<std::string>();
         stringAddPattern.format = strAddPattern["format"].get<std::string>();
         stringAddPattern.formatConfig.start = strAddPattern["format_config"]["start"].get<int>();
         stringAddPattern.formatConfig.step = strAddPattern["format_config"]["step"].get<int>();
         stringAddPattern.position = strAddPattern["position"].get<int>();
-    }
-}
-
-void Config::createConfigFile(const std::string& filename) {
-    // Named constants for default values
-    const json defaultStringReplacePattern = {{"re_match", ""}, {"replace", ""}};
-    const json defaultStringAddPattern = {
-        {"re_match", ""},
-        {"format", ""},
-        {"format_config", {{"start", 1}, {"step", 1}}},
-        {"position", 0}
-    };
-
-    // Constructing the JSON configuration
-    json config;
-    config["confirm"] = true;
-    config["exit_when_done"] = false;
-    config["target_dir"] = "";
-    config["unwanted_extension"] = json::array();
-    config["string_delete"] = json::array();
-    config["string_replace_pattern"] = json::array({ defaultStringReplacePattern });
-    config["string_add_pattern"] = defaultStringAddPattern;
-
-    // Writing the JSON to the file
-    std::ofstream file(filename);
-    if (file.is_open()) {
-        file << std::setw(4) << config;
-        std::cout << "Config file '" << filename << "' created successfully." << std::endl;
-    }
-    else {
-        std::cerr << "Unable to create config file '" << filename <<"'." << std::endl << "Please check permissions or disk space." << std::endl;
-        exitWithFailure();
     }
 }
 
@@ -166,10 +179,15 @@ bool Config::isStringAddPatternEmpty() const {
     return stringAddPattern.format.empty();
 }
 
-bool Config::isConfirmEnabled() const {
+GlobalConfig::GlobalConfig(const json& globalConfig) {
+    confirm = globalConfig["confirm"].get<bool>();
+    exitWhenDone = globalConfig["exit_when_done"].get<bool>();
+}
+
+bool GlobalConfig::isConfirmEnabled() const {
     return confirm;
 }
 
-bool Config::isExitWhenDoneEnabled() const {
+bool GlobalConfig::isExitWhenDoneEnabled() const {
     return exitWhenDone;
 }

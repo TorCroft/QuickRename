@@ -4,6 +4,32 @@
 
 using json = nlohmann::json;
 
+
+class ConfigFile {
+private:
+    void createConfigFile(const std::string& filename);
+    json global{};
+    std::vector<json> profiles;
+
+public:
+    ConfigFile(const std::string& filename = ".\\config.json");
+    json getGlobalConfig();
+    std::vector<json> getProfiles();
+};
+
+
+class GlobalConfig {
+private:
+    bool confirm{};
+    bool exitWhenDone{};
+
+public:
+    GlobalConfig(const json& globalConfig);
+    bool isConfirmEnabled() const;
+    bool isExitWhenDoneEnabled() const;
+};
+
+
 class Config {
 
 private:
@@ -26,14 +52,8 @@ private:
 
     StrAddPatternConfig stringAddPattern;
 
-    bool confirm{};
-    bool exitWhenDone{};
-
-    void createConfigFile(const std::string& filename);
-    void processJson(const json& Data);
-
 public:
-    Config(const std::string& filename = ".\\config.json");
+    Config(const json& profile);
     const std::string& getTargetDir() const;
     const std::vector<std::string>& getUnwantedExtensionList() const;
     const std::vector<std::string>& getStringDeleteList() const;
@@ -44,6 +64,4 @@ public:
     bool isStringDeleteListEmpty() const;
     bool isStringReplacePatternEmpty() const;
     bool isStringAddPatternEmpty() const;
-    bool isConfirmEnabled() const;
-    bool isExitWhenDoneEnabled() const;
 };

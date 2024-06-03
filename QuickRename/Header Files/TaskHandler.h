@@ -4,7 +4,7 @@
 
 class TaskHandler {
 public:
-    TaskHandler(const Config& config);
+    TaskHandler(const GlobalConfig& globalConfig, const Config& config);
 
     void executeTasks();
 
@@ -23,6 +23,7 @@ private:
     void showChanges();
     void applyChanges();
 
+    const GlobalConfig& global;
     const Config& config;
     std::vector<File> files;
     std::vector<File> nameChangedFiles;

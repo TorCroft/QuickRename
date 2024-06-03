@@ -21,30 +21,36 @@ QuickRename is a versatile tool for renaming files in bulk according to user-def
 
    ``` json
   {
-    "confirm": true,
-    "exit_when_done": false,
-    "target_dir": "",
-    "unwanted_extension": [ ".tmp", "bak" ],
-    "string_delete": [ "_old" ],
-    "string_replace_pattern": [
+    "global": {
+      "confirm": true,
+      "exit_when_done": false
+    },
+    "profiles": [
       {
-        "re_match": "\\d{4}",
-        "replace": "2077"
-      },
-      {
-        "re_match": "SE(\\d{2}).(\\d{2})",
-        "replace": "S$1E$2"
+        "target_dir": "D:\\Videos\\test",
+        "unwanted_extension": [ ".tmp", "bak" ],
+        "string_delete": [ "_old" ],
+        "string_replace_pattern": [
+          {
+            "re_match": "\\d{4}",
+            "replace": "2077"
+          },
+          {
+            "re_match": "SE(\\d{2}).(\\d{2})",
+            "replace": "S$1E$2"
+          }
+        ],
+        "string_add_pattern": {
+          "re_match": "",
+          "format": "S01E\\2\\ ",
+          "format_config": {
+            "start": 1,
+            "step": 1
+          },
+          "position": 0
+        }
       }
-    ],
-    "string_add_pattern": {
-      "re_match": "",
-      "format": "S01E\\2\\ ",
-      "format_config": {
-        "start": 1,
-        "step": 1
-      },
-      "position": 0
-    }
+    ]
   }
   ```
   **Note:<br>**
